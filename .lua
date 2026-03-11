@@ -723,8 +723,8 @@ registerRight("Update", function(scroll) end)
 registerRight("Server", function(scroll) end)
 registerRight("Settings", function(scroll) end)
 
---===== UFO HUB X • Home • MAX999 → MAX0 / MAX1 / MAX2 =====
-registerRight("Home", function(scroll)
+--===== UFO HUB X • MAX999 → MAX0 / MAX1 / MAX2 (Switch Version) =====
+registerRight("Player", function(scroll)
 
 local TweenService = game:GetService("TweenService")
 
@@ -739,10 +739,6 @@ WHITE = Color3.fromRGB(255,255,255),
 BLACK = Color3.fromRGB(0,0,0),
 }
 
----
-
--- HELPERS (Model A V1)
-
 local function corner(ui,r)
 local c=Instance.new("UICorner")
 c.CornerRadius=UDim.new(0,r or 12)
@@ -755,6 +751,14 @@ s.Thickness=th or 2.2
 s.Color=col or THEME.GREEN
 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
 s.Parent=ui
+end
+
+local function tween(o,p,d)
+TweenService:Create(
+o,
+TweenInfo.new(d or 0.08,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+p
+):Play()
 end
 
 ---
@@ -782,11 +786,14 @@ end
 -- STATE
 
 local MAXState=false
-local MAXChildren={}
+local children={}
+
+local feature1=false
+local feature2=false
 
 ---
 
--- MAX999 (หน้าตาเดิม)
+-- MAX999 (ปุ่มหลัก)
 
 local row=Instance.new("Frame")
 row.Name="MAX999"
@@ -798,7 +805,6 @@ row.LayoutOrder=base+1
 local s=Instance.new("UIStroke")
 s.Thickness=3
 s.Color=THEME.GREEN
-s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
 s.Parent=row
 
 local label=Instance.new("TextLabel")
@@ -817,11 +823,11 @@ arrow.Parent=row
 arrow.BackgroundTransparency=1
 arrow.Size=UDim2.new(0,28,0,28)
 arrow.Position=UDim2.new(1,-28,0.5,0)
+arrow.AnchorPoint=Vector2.new(0.5,0.5)
 arrow.Font=Enum.Font.GothamBold
 arrow.TextSize=26
 arrow.TextColor3=THEME.WHITE
 arrow.Text="▶"
-arrow.AnchorPoint=Vector2.new(0.5,0.5)
 
 local function update(on)
 arrow.Text=on and "▼" or "▶"
@@ -832,22 +838,23 @@ btn.Parent=row
 btn.BackgroundTransparency=1
 btn.Size=UDim2.fromScale(1,1)
 btn.Text=""
-btn.AutoButtonColor=false
+
 btn.MouseButton1Click:Connect(function()
+
 MAXState=not MAXState
 update(MAXState)
 
-for _,c in ipairs(MAXChildren) do
-    c.Visible=MAXState
+for _,c in ipairs(children) do
+c.Visible=MAXState
 end
 
 end)
 
-update(MAXState)
+update(false)
 
 ---
 
--- HEADER MAX0 (Model A V1)
+-- HEADER MAX0
 
 local header=Instance.new("TextLabel")
 header.Name="MAX0"
@@ -858,17 +865,17 @@ header.Font=Enum.Font.GothamBold
 header.TextSize=16
 header.TextColor3=THEME.WHITE
 header.TextXAlignment=Enum.TextXAlignment.Left
-header.Text="MAX0"
+header.Text="》》》MAX0《《《"
 header.LayoutOrder=base+2
 header.Visible=false
 
-table.insert(MAXChildren,header)
+table.insert(children,header)
 
 ---
 
--- ROW FUNCTION (Model A V1 ▶)
+-- SWITCH ROW
 
-local function makeRow(name,order,labelText)
+local function makeSwitch(name,order,labelText,getState,setState)
 
 local row=Instance.new("Frame")
 row.Name=name
@@ -883,7 +890,7 @@ row.Visible=false
 local lab=Instance.new("TextLabel")
 lab.Parent=row
 lab.BackgroundTransparency=1
-lab.Size=UDim2.new(1,-80,1,0)
+lab.Size=UDim2.new(1,-160,1,0)
 lab.Position=UDim2.new(0,16,0,0)
 lab.Font=Enum.Font.GothamBold
 lab.TextSize=13
@@ -891,28 +898,88 @@ lab.TextColor3=THEME.WHITE
 lab.TextXAlignment=Enum.TextXAlignment.Left
 lab.Text=labelText
 
-local btn=Instance.new("TextButton")
-btn.Parent=row
-btn.BackgroundTransparency=1
-btn.AnchorPoint=Vector2.new(1,0.5)
-btn.Position=UDim2.new(1,-12,0.5,0)
-btn.Size=UDim2.new(0,24,0,24)
-btn.Font=Enum.Font.GothamBold
-btn.TextSize=18
-btn.TextColor3=THEME.WHITE
-btn.Text="▶"
-btn.AutoButtonColor=false
+local sw=Instance.new("Frame")
+sw.Parent=row
+sw.AnchorPoint=Vector2.new(1,0.5)
+sw.Position=UDim2.new(1,-12,0.5,0)
+sw.Size=UDim2.fromOffset(52,26)
+sw.BackgroundColor3=THEME.BLACK
+corner(sw,13)
 
-table.insert(MAXChildren,row)
+local swStroke=Instance.new("UIStroke")
+swStroke.Parent=sw
+swStroke.Thickness=1.8
+
+local knob=Instance.new("Frame")
+knob.Parent=sw
+knob.Size=UDim2.fromOffset(22,22)
+knob.BackgroundColor3=THEME.WHITE
+knob.Position=UDim2.new(0,2,0.5,-11)
+corner(knob,11)
+
+local function update(on)
+
+swStroke.Color=on and THEME.GREEN or THEME.RED
+
+tween(knob,{
+Position=UDim2.new(on and 1 or 0,on and -24 or 2,0.5,-11)
+})
+
+end
+
+local btn=Instance.new("TextButton")
+btn.Parent=sw
+btn.BackgroundTransparency=1
+btn.Size=UDim2.fromScale(1,1)
+btn.Text=""
+
+btn.MouseButton1Click:Connect(function()
+
+local new=not getState()
+setState(new)
+update(new)
+
+end)
+
+update(getState())
+
+table.insert(children,row)
 
 end
 
 ---
 
--- MAX1 / MAX2
+-- MAX1
 
-makeRow("MAX1",base+3,"MAX1")
-makeRow("MAX2",base+4,"MAX2")
+makeSwitch(
+"MAX1",
+base+3,
+"MAX1 System",
+function()
+return feature1
+end,
+function(v)
+feature1=v
+print("MAX1 =",v)
+end
+)
+
+---
+
+-- MAX2
+
+makeSwitch(
+"MAX2",
+base+4,
+"MAX2 System",
+function()
+return feature2
+end,
+function(v)
+feature2=v
+print("MAX2 =",v)
+end
+)
 
 end)
     
