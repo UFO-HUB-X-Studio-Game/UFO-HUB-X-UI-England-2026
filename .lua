@@ -723,6 +723,99 @@ registerRight("Update", function(scroll) end)
 registerRight("Server", function(scroll) end)
 registerRight("Settings", function(scroll) end)
 
+--===== UFO HUB X • Home • MAX999 Only =====
+registerRight("Home", function(scroll)
+    local TweenService = game:GetService("TweenService")
+
+    ------------------------------------------------------------------------
+    -- THEME
+    ------------------------------------------------------------------------
+    local THEME = {
+        GREEN = Color3.fromRGB(25,255,125),
+        WHITE = Color3.fromRGB(255,255,255),
+        BLACK = Color3.fromRGB(0,0,0),
+    }
+
+    ------------------------------------------------------------------------
+    -- UIListLayout
+    ------------------------------------------------------------------------
+    local vlist = scroll:FindFirstChildOfClass("UIListLayout")
+    if not vlist then
+        vlist = Instance.new("UIListLayout")
+        vlist.Parent = scroll
+        vlist.Padding = UDim.new(0,12)
+        vlist.SortOrder = Enum.SortOrder.LayoutOrder
+    end
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    local base = 0
+    for _,ch in ipairs(scroll:GetChildren()) do
+        if ch:IsA("GuiObject") and ch ~= vlist then
+            base = math.max(base,ch.LayoutOrder or 0)
+        end
+    end
+
+    ------------------------------------------------------------------------
+    -- STATE
+    ------------------------------------------------------------------------
+    local MAXState = false
+
+    ------------------------------------------------------------------------
+    -- MAX999 (Parent Arrow Switch)
+    ------------------------------------------------------------------------
+    local row = Instance.new("Frame")
+    row.Name = "MAX999"
+    row.Parent = scroll
+    row.Size = UDim2.new(1,-6,0,50)
+    row.BackgroundColor3 = THEME.BLACK
+    row.LayoutOrder = base + 1
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 3
+    stroke.Color = THEME.GREEN
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent = row
+
+    local label = Instance.new("TextLabel")
+    label.Parent = row
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1,-60,1,0)
+    label.Position = UDim2.new(0,16,0,0)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = THEME.WHITE
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = "》》》MAX999《《《"
+
+    local arrow = Instance.new("TextLabel")
+    arrow.Parent = row
+    arrow.BackgroundTransparency = 1
+    arrow.Size = UDim2.new(0,28,0,28)
+    arrow.Position = UDim2.new(1,-28,0.5,0)
+    arrow.Font = Enum.Font.GothamBold
+    arrow.TextSize = 26
+    arrow.TextColor3 = THEME.WHITE
+    arrow.Text = "▶"
+    arrow.AnchorPoint = Vector2.new(0.5,0.5)
+
+    local function update(on)
+        arrow.Text = on and "▼" or "▶"
+    end
+
+    local btn = Instance.new("TextButton")
+    btn.Parent = row
+    btn.BackgroundTransparency = 1
+    btn.Size = UDim2.fromScale(1,1)
+    btn.Text = ""
+    btn.AutoButtonColor = false
+    btn.MouseButton1Click:Connect(function()
+        MAXState = not MAXState
+        update(MAXState)
+    end)
+
+    update(MAXState)
+end)
+    
 ---- ========== ผูกปุ่มแท็บ + เปิดแท็บแรก ==========
 local tabs = {
     {btn = btnPlayer,   set = setPlayerActive,   name = "Player",   icon = ICON_PLAYER},
