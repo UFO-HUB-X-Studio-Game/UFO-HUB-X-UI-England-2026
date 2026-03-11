@@ -723,97 +723,197 @@ registerRight("Update", function(scroll) end)
 registerRight("Server", function(scroll) end)
 registerRight("Settings", function(scroll) end)
 
---===== UFO HUB X • Home • MAX999 Only =====
+--===== UFO HUB X • Home • MAX999 → MAX0 / MAX1 / MAX2 =====
 registerRight("Home", function(scroll)
-    local TweenService = game:GetService("TweenService")
 
-    ------------------------------------------------------------------------
-    -- THEME
-    ------------------------------------------------------------------------
-    local THEME = {
-        GREEN = Color3.fromRGB(25,255,125),
-        WHITE = Color3.fromRGB(255,255,255),
-        BLACK = Color3.fromRGB(0,0,0),
-    }
+local TweenService = game:GetService("TweenService")
 
-    ------------------------------------------------------------------------
-    -- UIListLayout
-    ------------------------------------------------------------------------
-    local vlist = scroll:FindFirstChildOfClass("UIListLayout")
-    if not vlist then
-        vlist = Instance.new("UIListLayout")
-        vlist.Parent = scroll
-        vlist.Padding = UDim.new(0,12)
-        vlist.SortOrder = Enum.SortOrder.LayoutOrder
-    end
-    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+---
 
-    local base = 0
-    for _,ch in ipairs(scroll:GetChildren()) do
-        if ch:IsA("GuiObject") and ch ~= vlist then
-            base = math.max(base,ch.LayoutOrder or 0)
-        end
-    end
+-- THEME
 
-    ------------------------------------------------------------------------
-    -- STATE
-    ------------------------------------------------------------------------
-    local MAXState = false
+local THEME = {
+GREEN = Color3.fromRGB(25,255,125),
+RED   = Color3.fromRGB(255,40,40),
+WHITE = Color3.fromRGB(255,255,255),
+BLACK = Color3.fromRGB(0,0,0),
+}
 
-    ------------------------------------------------------------------------
-    -- MAX999 (Parent Arrow Switch)
-    ------------------------------------------------------------------------
-    local row = Instance.new("Frame")
-    row.Name = "MAX999"
-    row.Parent = scroll
-    row.Size = UDim2.new(1,-6,0,50)
-    row.BackgroundColor3 = THEME.BLACK
-    row.LayoutOrder = base + 1
+---
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 3
-    stroke.Color = THEME.GREEN
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Parent = row
+-- HELPERS (Model A V1)
 
-    local label = Instance.new("TextLabel")
-    label.Parent = row
-    label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1,-60,1,0)
-    label.Position = UDim2.new(0,16,0,0)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 16
-    label.TextColor3 = THEME.WHITE
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Text = "》》》MAX999《《《"
+local function corner(ui,r)
+local c=Instance.new("UICorner")
+c.CornerRadius=UDim.new(0,r or 12)
+c.Parent=ui
+end
 
-    local arrow = Instance.new("TextLabel")
-    arrow.Parent = row
-    arrow.BackgroundTransparency = 1
-    arrow.Size = UDim2.new(0,28,0,28)
-    arrow.Position = UDim2.new(1,-28,0.5,0)
-    arrow.Font = Enum.Font.GothamBold
-    arrow.TextSize = 26
-    arrow.TextColor3 = THEME.WHITE
-    arrow.Text = "▶"
-    arrow.AnchorPoint = Vector2.new(0.5,0.5)
+local function stroke(ui,th,col)
+local s=Instance.new("UIStroke")
+s.Thickness=th or 2.2
+s.Color=col or THEME.GREEN
+s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+s.Parent=ui
+end
 
-    local function update(on)
-        arrow.Text = on and "▼" or "▶"
-    end
+---
 
-    local btn = Instance.new("TextButton")
-    btn.Parent = row
-    btn.BackgroundTransparency = 1
-    btn.Size = UDim2.fromScale(1,1)
-    btn.Text = ""
-    btn.AutoButtonColor = false
-    btn.MouseButton1Click:Connect(function()
-        MAXState = not MAXState
-        update(MAXState)
-    end)
+-- UIListLayout
 
-    update(MAXState)
+local vlist=scroll:FindFirstChildOfClass("UIListLayout")
+if not vlist then
+vlist=Instance.new("UIListLayout")
+vlist.Parent=scroll
+vlist.Padding=UDim.new(0,12)
+vlist.SortOrder=Enum.SortOrder.LayoutOrder
+end
+scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
+
+local base=0
+for _,ch in ipairs(scroll:GetChildren()) do
+if ch:IsA("GuiObject") and ch~=vlist then
+base=math.max(base,ch.LayoutOrder or 0)
+end
+end
+
+---
+
+-- STATE
+
+local MAXState=false
+local MAXChildren={}
+
+---
+
+-- MAX999 (หน้าตาเดิม)
+
+local row=Instance.new("Frame")
+row.Name="MAX999"
+row.Parent=scroll
+row.Size=UDim2.new(1,-6,0,50)
+row.BackgroundColor3=THEME.BLACK
+row.LayoutOrder=base+1
+
+local s=Instance.new("UIStroke")
+s.Thickness=3
+s.Color=THEME.GREEN
+s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+s.Parent=row
+
+local label=Instance.new("TextLabel")
+label.Parent=row
+label.BackgroundTransparency=1
+label.Size=UDim2.new(1,-60,1,0)
+label.Position=UDim2.new(0,16,0,0)
+label.Font=Enum.Font.GothamBold
+label.TextSize=16
+label.TextColor3=THEME.WHITE
+label.TextXAlignment=Enum.TextXAlignment.Left
+label.Text="》》》MAX999《《《"
+
+local arrow=Instance.new("TextLabel")
+arrow.Parent=row
+arrow.BackgroundTransparency=1
+arrow.Size=UDim2.new(0,28,0,28)
+arrow.Position=UDim2.new(1,-28,0.5,0)
+arrow.Font=Enum.Font.GothamBold
+arrow.TextSize=26
+arrow.TextColor3=THEME.WHITE
+arrow.Text="▶"
+arrow.AnchorPoint=Vector2.new(0.5,0.5)
+
+local function update(on)
+arrow.Text=on and "▼" or "▶"
+end
+
+local btn=Instance.new("TextButton")
+btn.Parent=row
+btn.BackgroundTransparency=1
+btn.Size=UDim2.fromScale(1,1)
+btn.Text=""
+btn.AutoButtonColor=false
+btn.MouseButton1Click:Connect(function()
+MAXState=not MAXState
+update(MAXState)
+
+for _,c in ipairs(MAXChildren) do
+    c.Visible=MAXState
+end
+
+end)
+
+update(MAXState)
+
+---
+
+-- HEADER MAX0 (Model A V1)
+
+local header=Instance.new("TextLabel")
+header.Name="MAX0"
+header.Parent=scroll
+header.BackgroundTransparency=1
+header.Size=UDim2.new(1,0,0,36)
+header.Font=Enum.Font.GothamBold
+header.TextSize=16
+header.TextColor3=THEME.WHITE
+header.TextXAlignment=Enum.TextXAlignment.Left
+header.Text="MAX0"
+header.LayoutOrder=base+2
+header.Visible=false
+
+table.insert(MAXChildren,header)
+
+---
+
+-- ROW FUNCTION (Model A V1 ▶)
+
+local function makeRow(name,order,labelText)
+
+local row=Instance.new("Frame")
+row.Name=name
+row.Parent=scroll
+row.Size=UDim2.new(1,-6,0,46)
+row.BackgroundColor3=THEME.BLACK
+corner(row,12)
+stroke(row,2.2,THEME.GREEN)
+row.LayoutOrder=order
+row.Visible=false
+
+local lab=Instance.new("TextLabel")
+lab.Parent=row
+lab.BackgroundTransparency=1
+lab.Size=UDim2.new(1,-80,1,0)
+lab.Position=UDim2.new(0,16,0,0)
+lab.Font=Enum.Font.GothamBold
+lab.TextSize=13
+lab.TextColor3=THEME.WHITE
+lab.TextXAlignment=Enum.TextXAlignment.Left
+lab.Text=labelText
+
+local btn=Instance.new("TextButton")
+btn.Parent=row
+btn.BackgroundTransparency=1
+btn.AnchorPoint=Vector2.new(1,0.5)
+btn.Position=UDim2.new(1,-12,0.5,0)
+btn.Size=UDim2.new(0,24,0,24)
+btn.Font=Enum.Font.GothamBold
+btn.TextSize=18
+btn.TextColor3=THEME.WHITE
+btn.Text="▶"
+btn.AutoButtonColor=false
+
+table.insert(MAXChildren,row)
+
+end
+
+---
+
+-- MAX1 / MAX2
+
+makeRow("MAX1",base+3,"MAX1")
+makeRow("MAX2",base+4,"MAX2")
+
 end)
     
 ---- ========== ผูกปุ่มแท็บ + เปิดแท็บแรก ==========
